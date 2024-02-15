@@ -5,3 +5,11 @@ Resources:
     Properties:
       Name: shankar-eks-cluster
       Version: '1.21'
+      RoleArn: "arn:aws:iam::238393102293:role/aws-service-role/eks.amazonaws.com/AWSServiceRoleForAmazonEKS"
+      ResourcesVpcConfig:
+        SecurityGroupIds:
+          - sg-02a09e0df158c2076
+        SubnetIds:
+          - subnet-0f2adf16fe745ab1e
+          - subnet-03971c7bbba6e9a9d
+

@@ -10,7 +10,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
       - name: Deploy EKS Cluster
-        run: aws cloudformation deploy --template-file eks-cluster.yaml --stack-name shankar-eks-cluster-stack --region us-east-1
+        run: aws cloudformation deploy --template-file eks-cluster.yaml --stack-name shankar-eks-cluster-stack --region us-west-2
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEYID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
