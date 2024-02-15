@@ -1,0 +1,7 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  MyEKSCluster:
+    Type: AWS::EKS::Cluster
+    Properties:
+      Name: shankar-eks-cluster
+      Version: '1.21'
