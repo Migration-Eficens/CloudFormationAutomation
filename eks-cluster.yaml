@@ -1,15 +1,91 @@
 AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template to create an AWS EKS cluster
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: Demo
+  VpcId:
+    Type: String
+    Default: vpc-054b09dd7103d3838
+
+  KeyName:
+    Type: String
+    Default: Demo-Key
+  NodeInstanceType:
+    Type: String
+    Default: t3.medium
+  DesiredCapacity:
+    Type: Number
+    Default: 1
+    MinValue: 1
+    MaxValue: 2
+
 Resources:
-  MyEKSCluster:
+  EksCluster:
     Type: AWS::EKS::Cluster
     Properties:
-      Name: shankar-eks-cluster
-      Version: '1.29'
-      RoleArn: "arn:aws:iam::238393102293:role/aws-service-role/eks.amazonaws.com/AWSServiceRoleForAmazonEKS"
+      Name: !Sub "${ProjectName}-Eks-Cluster"
+      RoleArn: !GetAtt EKSClusterRole.Arn
       ResourcesVpcConfig:
         SecurityGroupIds:
           - sg-02a09e0df158c2076
         SubnetIds:
           - subnet-0f2adf16fe745ab1e
           - subnet-03971c7bbba6e9a9d
+        EndpointPublicAccess: true
+        EndpointPrivateAccess: true
 
+  EKSClusterRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-Eks-Role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: eks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+
+
+  NodeGroup:
+    Type: AWS::EKS::Nodegroup
+    Properties:
+      ClusterName: !Ref EksCluster
+      NodegroupName: !Sub ${ProjectName}_NodeGroup
+      NodeRole: !GetAtt NodeInstanceRole.Arn
+      Subnets:
+          - subnet-0f2adf16fe745ab1e
+          - subnet-03971c7bbba6e9a9d
+      ScalingConfig:
+        DesiredSize: !Ref DesiredCapacity
+        MinSize: 1
+        MaxSize: 10
+      InstanceTypes:
+        - !Ref NodeInstanceType
+
+  NodeInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-Node-Instance-Role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+Outputs:
+  ClusterNameOutput:
+    Description: Name of the EKS cluster
+    Value: !Ref EksCluster
+  NodeGroupNameOutput:
+    Description: Name of the EKS node group
+    Value: !Ref NodeGroup
