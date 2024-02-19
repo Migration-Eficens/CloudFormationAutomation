@@ -6,11 +6,21 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      EKS_CLUSTER_TEMPLATE: eks-cluster.yaml
+      EKS_CLUSTER_STACK_NAME: DemoEksClusterTemplate
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
-      - name: Deploy EKS Cluster
-        run: aws cloudformation deploy --template-file eks-cluster.yaml --stack-name shankar-eks-cluster-stack --region us-west-2
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEYID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Deploy EKs Cluster to CloudFormation
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: ${{ env.EKS_CLUSTER_STACK_NAME }}
+          template: ${{ env.EKS_CLUSTER_TEMPLATE }}
+          no-fail-on-empty-changeset: "1"
